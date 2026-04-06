@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>워크샵 점수판</title>
+    <title>워크숍 점수판</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=SUIT:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;800&family=SUIT:wght@400;500;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
@@ -19,213 +19,155 @@
     <main class="app-shell">
       <section class="hero-card">
         <p class="eyebrow">Workshop Scoreboard</p>
-        <h1>
-          <span class="hero-title-line">Okestro</span>
-          <span class="hero-title-line hero-title-line-secondary">플랫폼 개발본부</span>
-        </h1>
+        <h1>팀 점수판 운영 보드</h1>
         <p class="hero-copy">
-          팀 수를 정하고, 팀명과 구호를 적고, 점수를 입력하면 총합과 순위를
-          바로 확인할 수 있어요.
+          팀 수와 팀 정보를 저장하고, 미션 점수를 입력한 뒤 종합 페이지에서 실시간 결과를 확인할 수 있어요.
         </p>
 
         <div class="progress-steps" aria-label="진행 단계">
-          <div class="progress-step is-active">
+          <div class="progress-step is-active" data-step-indicator="setup">
             <span>1</span>
-            <strong>팀 수</strong>
+            <strong>팀 설정</strong>
           </div>
-          <div class="progress-step">
+          <div class="progress-step" data-step-indicator="score">
             <span>2</span>
-            <strong>팀 정보</strong>
+            <strong>점수 입력</strong>
           </div>
-          <div class="progress-step">
+          <div class="progress-step" data-step-indicator="summary">
             <span>3</span>
-            <strong>점수판</strong>
-          </div>
-          <div class="progress-step">
-            <span>4</span>
-            <strong>최종 결과</strong>
+            <strong>종합 보기</strong>
           </div>
         </div>
       </section>
 
-      <section class="panel-stack">
-        <form class="panel is-visible" id="team-count-form">
-          <div class="panel-header">
-            <p class="panel-kicker">STEP 1</p>
-            <h2>몇 개 팀으로 진행하나요?</h2>
-            <p>
-              워크샵 규모에 맞게 팀 수를 선택하면 다음 단계에서 팀명과 구호를
-              입력할 수 있어요.
-            </p>
-          </div>
+      <div class="connection-strip">
+        <div class="status-pill">연결 상태 <strong id="connection-status">확인 중</strong></div>
+        <div class="status-pill">세션 코드 <strong id="session-code">없음</strong></div>
+      </div>
 
-          <div class="count-grid" id="count-grid" role="radiogroup" aria-label="팀 수 선택"></div>
+      <section class="panel is-visible" id="setup-panel">
+        <div class="panel-header">
+          <p class="panel-kicker">STEP 1</p>
+          <h2>팀 설정 저장</h2>
+          <p>팀 수를 정하고 팀명과 팀 구호를 입력한 뒤 점수판을 만들면 Supabase에 저장됩니다.</p>
+        </div>
 
-          <div class="panel-actions">
-            <button type="submit" class="primary-button">다음으로</button>
-          </div>
-        </form>
+        <div class="setup-layout">
+          <section class="config-card">
+            <label class="field-block" for="team-count-input">
+              <span>팀 수</span>
+              <input id="team-count-input" type="number" min="2" max="12" step="1" value="4" />
+            </label>
+            <button class="secondary-button" id="build-team-form" type="button">팀 입력칸 만들기</button>
+          </section>
 
-        <form class="panel" id="team-details-form">
-          <div class="panel-header">
-            <p class="panel-kicker">STEP 2</p>
-            <h2>팀명과 팀 구호를 입력해 주세요</h2>
-            <p>
-              현장에서 불릴 이름과 분위기를 살릴 한 줄 구호를 적어 두면 점수판이
-              더 생동감 있게 보여요.
-            </p>
-          </div>
+          <section class="config-card">
+            <h3>팀 정보 입력</h3>
+            <div class="team-form-grid" id="team-form-grid"></div>
+          </section>
+        </div>
 
-          <div class="team-details-grid" id="team-details-grid"></div>
+        <div class="panel-actions">
+          <button class="primary-button" id="save-scoreboard" type="button">점수판 만들기</button>
+        </div>
+      </section>
 
-          <div class="panel-actions split-actions">
-            <button type="button" class="secondary-button" id="back-to-count">
-              이전
-            </button>
-            <button type="submit" class="primary-button">점수판 만들기</button>
-          </div>
-        </form>
+      <section class="panel" id="score-panel">
+        <div class="panel-header">
+          <p class="panel-kicker">STEP 2</p>
+          <h2>팀 점수 입력</h2>
+          <p>팀을 선택하고 미션 종류를 고른 뒤 점수를 입력하면 해당 팀 점수에 바로 반영됩니다.</p>
+        </div>
 
-        <section class="panel" id="scoreboard-panel">
-          <div class="panel-header">
-            <p class="panel-kicker">STEP 3</p>
-            <h2>점수를 입력하면 총합이 바로 반영됩니다</h2>
-            <p>
-              각 팀의 항목별 점수를 자유롭게 적어 주세요. 비어 있는 칸은 0점으로
-              계산됩니다.
-            </p>
-          </div>
-
-          <div class="scoreboard-layout">
-            <div class="score-entry-list" id="score-entry-list"></div>
-
-            <aside class="summary-panel">
-              <div class="summary-card">
-                <span>현재 1위</span>
-                <strong id="leader-name">아직 없음</strong>
-                <p id="leader-score">점수를 입력하면 결과가 보여요</p>
-              </div>
-
-              <div class="chart-card">
-                <div class="chart-header">
-                  <h3>총합 바차트</h3>
-                  <button type="button" class="ghost-button" id="reset-scores">
-                    점수 초기화
-                  </button>
-                </div>
-                <div class="bar-chart" id="bar-chart"></div>
-              </div>
-            </aside>
-          </div>
-
-          <div class="panel-actions split-actions">
-            <button type="button" class="secondary-button" id="back-to-details">
-              팀 정보 수정
-            </button>
-            <div class="action-cluster">
-              <button type="button" class="accent-button" id="show-final-results">
-                최종 결과 발표
-              </button>
-              <button type="button" class="primary-button" id="restart-flow">
-                처음부터 다시
-              </button>
+        <div class="score-layout">
+          <section class="score-form-card">
+            <div class="score-form-intro">
+              <p class="panel-kicker">SCORE INPUT</p>
+              <h3>팀과 항목을 고른 뒤 점수를 추가하세요</h3>
             </div>
-          </div>
-        </section>
+            <div class="field-grid">
+              <label class="field-block field-block-wide" for="team-select">
+                <span>팀 선택</span>
+                <select id="team-select"></select>
+              </label>
+              <label class="field-block field-block-half" for="score-type-select">
+                <span>점수 항목</span>
+                <select id="score-type-select">
+                  <option value="mission1">1번째 미션</option>
+                  <option value="mission2">2번째 미션</option>
+                  <option value="mission3">3번째 미션</option>
+                  <option value="bonus">보너스</option>
+                </select>
+              </label>
+              <label class="field-block field-block-half" for="score-value-input">
+                <span>점수</span>
+                <input id="score-value-input" type="number" inputmode="numeric" step="1" value="0" />
+              </label>
+            </div>
 
-        <section class="panel" id="final-results-panel">
-          <div class="panel-header">
-            <p class="panel-kicker">FINAL</p>
-            <h2>워크샵 최종 순위</h2>
-            <p>
-              모든 게임이 끝났다면 최종 점수를 집계해서 우승팀과 전체 등수를
-              한눈에 발표할 수 있어요.
-            </p>
-          </div>
+            <div class="score-action-row">
+              <button class="primary-button" id="add-score-button" type="button">추가</button>
+              <button class="secondary-button" id="go-summary-button" type="button">종합 페이지 보기</button>
+            </div>
+          </section>
 
-          <div class="final-layout">
-            <section class="podium-card">
-              <p class="podium-label">Champion</p>
-              <h3 id="champion-name">아직 집계 전</h3>
-              <strong id="champion-score">0점</strong>
-              <p id="champion-motto">점수를 모두 입력한 뒤 최종 결과를 발표해 보세요.</p>
-            </section>
+          <section class="score-form-card">
+            <div class="inline-header">
+              <h3>최근 점수 변경</h3>
+              <button class="ghost-button" id="reset-session-button" type="button">세션 초기화</button>
+            </div>
+            <div class="event-feed" id="event-feed"></div>
+          </section>
+        </div>
+      </section>
 
-            <section class="ranking-card">
-              <div class="ranking-header">
-                <h3>전체 등수</h3>
-                <span id="ranking-summary">총 0개 팀</span>
-              </div>
-              <div class="ranking-list" id="ranking-list">
-                <div class="empty-state">최종 결과를 발표하면 전체 등수가 여기에 표시됩니다.</div>
-              </div>
-            </section>
-          </div>
+      <section class="panel" id="summary-panel">
+        <div class="panel-header">
+          <p class="panel-kicker">STEP 3</p>
+          <h2>종합 페이지</h2>
+          <p>팀별 총점과 마지막 변경 내역을 함께 보면서 현재 순위를 바로 확인할 수 있습니다.</p>
+        </div>
 
-          <div class="panel-actions split-actions">
-            <button type="button" class="secondary-button" id="back-to-scoreboard">
-              점수판으로 돌아가기
-            </button>
-            <button type="button" class="primary-button" id="restart-from-final">
-              처음부터 다시
-            </button>
-          </div>
-        </section>
+        <div class="summary-layout">
+          <section class="summary-card spotlight-card">
+            <span>현재 1등</span>
+            <strong id="leader-name">없음</strong>
+            <p id="leader-summary">점수를 입력하면 결과가 여기에 표시됩니다.</p>
+          </section>
+
+          <section class="summary-card">
+            <div class="inline-header">
+              <h3>팀별 총점</h3>
+              <span id="total-team-count">총 0팀</span>
+            </div>
+            <div class="ranking-list" id="ranking-list"></div>
+          </section>
+
+          <section class="summary-card full-width">
+            <div class="inline-header">
+              <h3>변경 내역</h3>
+              <button class="secondary-button" id="back-to-score-button" type="button">점수 입력으로 돌아가기</button>
+            </div>
+            <div class="event-feed" id="summary-event-feed"></div>
+          </section>
+        </div>
       </section>
     </main>
 
-    <template id="team-detail-template">
+    <template id="team-form-template">
       <article class="team-card">
         <div class="team-card-title">
           <span class="team-chip"></span>
           <h3></h3>
         </div>
-        <label>
+        <label class="field-block">
           <span>팀명</span>
-          <input type="text" name="teamName" maxlength="20" required />
+          <input class="team-name-input" type="text" maxlength="20" />
         </label>
-        <label>
+        <label class="field-block">
           <span>팀 구호</span>
-          <input
-            type="text"
-            name="teamMotto"
-            maxlength="40"
-            placeholder="예: 끝까지 가보자!"
-          />
+          <input class="team-motto-input" type="text" maxlength="40" />
         </label>
-      </article>
-    </template>
-
-    <template id="score-card-template">
-      <article class="score-card">
-        <div class="score-card-header">
-          <div>
-            <p class="score-team-name"></p>
-            <strong class="score-team-motto"></strong>
-          </div>
-          <div class="score-total-badge">
-            총합 <span class="score-total-value">0</span>
-          </div>
-        </div>
-
-        <div class="score-input-grid">
-          <label>
-            <span>미션 1</span>
-            <input type="number" inputmode="numeric" data-score-index="0" />
-          </label>
-          <label>
-            <span>미션 2</span>
-            <input type="number" inputmode="numeric" data-score-index="1" />
-          </label>
-          <label>
-            <span>미션 3</span>
-            <input type="number" inputmode="numeric" data-score-index="2" />
-          </label>
-          <label>
-            <span>보너스</span>
-            <input type="number" inputmode="numeric" data-score-index="3" />
-          </label>
-        </div>
       </article>
     </template>
 

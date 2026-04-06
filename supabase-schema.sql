@@ -22,8 +22,19 @@ create table if not exists public.workshop_teams (
   unique (workshop_id, team_order)
 );
 
+create table if not exists public.workshop_score_events (
+  id text primary key,
+  workshop_id uuid not null references public.workshops(id) on delete cascade,
+  team_order integer not null,
+  score_type text not null,
+  score_label text not null,
+  score_value integer not null default 0,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 alter table public.workshops enable row level security;
 alter table public.workshop_teams enable row level security;
+alter table public.workshop_score_events enable row level security;
 
 drop policy if exists "anon can read workshops" on public.workshops;
 create policy "anon can read workshops"
@@ -69,6 +80,42 @@ to anon
 using (true)
 with check (true);
 
+drop policy if exists "anon can delete workshop teams" on public.workshop_teams;
+create policy "anon can delete workshop teams"
+on public.workshop_teams
+for delete
+to anon
+using (true);
+
+drop policy if exists "anon can read workshop score events" on public.workshop_score_events;
+create policy "anon can read workshop score events"
+on public.workshop_score_events
+for select
+to anon
+using (true);
+
+drop policy if exists "anon can insert workshop score events" on public.workshop_score_events;
+create policy "anon can insert workshop score events"
+on public.workshop_score_events
+for insert
+to anon
+with check (true);
+
+drop policy if exists "anon can update workshop score events" on public.workshop_score_events;
+create policy "anon can update workshop score events"
+on public.workshop_score_events
+for update
+to anon
+using (true)
+with check (true);
+
+drop policy if exists "anon can delete workshop score events" on public.workshop_score_events;
+create policy "anon can delete workshop score events"
+on public.workshop_score_events
+for delete
+to anon
+using (true);
+
 do $$
 begin
   if not exists (
@@ -89,6 +136,16 @@ begin
       and tablename = 'workshop_teams'
   ) then
     alter publication supabase_realtime add table public.workshop_teams;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'workshop_score_events'
+  ) then
+    alter publication supabase_realtime add table public.workshop_score_events;
   end if;
 end
 $$;
