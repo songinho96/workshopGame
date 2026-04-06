@@ -16,6 +16,8 @@ const state = {
   connectionState: "연결안됨",
   subscription: null,
   isRestoring: false,
+  ceremonyOpen: false,
+  celebrationOpen: false,
 };
 
 const progressSteps = [...document.querySelectorAll("[data-step-indicator]")];
@@ -38,13 +40,28 @@ const addScoreButton = document.getElementById("add-score-button");
 const goSummaryButton = document.getElementById("go-summary-button");
 const resetSessionButton = document.getElementById("reset-session-button");
 const backToScoreButton = document.getElementById("back-to-score-button");
+const finishSummaryButton = document.getElementById("finish-summary-button");
 const eventFeed = document.getElementById("event-feed");
 const summaryEventFeed = document.getElementById("summary-event-feed");
 const rankingList = document.getElementById("ranking-list");
 const totalTeamCount = document.getElementById("total-team-count");
 const leaderName = document.getElementById("leader-name");
 const leaderSummary = document.getElementById("leader-summary");
+const ceremonyScreen = document.getElementById("ceremony-screen");
+const ceremonyRankingList = document.getElementById("ceremony-ranking-list");
+const ceremonyTopCount = document.getElementById("ceremony-top-count");
+const winnerButtonGroup = document.getElementById("winner-button-group");
+const closeCeremonyButton = document.getElementById("close-ceremony-button");
+const celebrationOverlay = document.getElementById("celebration-overlay");
+const celebrationTitle = document.getElementById("celebration-title");
+const celebrationTeam = document.getElementById("celebration-team");
+const celebrationCopy = document.getElementById("celebration-copy");
+const closeCelebrationButton = document.getElementById("close-celebration-button");
+const fireworksLayer = document.getElementById("fireworks-layer");
 const teamFormTemplate = document.getElementById("team-form-template");
+
+let celebrationAudioContext = null;
+let celebrationSequenceTimer = null;
 
 init();
 
@@ -62,7 +79,16 @@ function attachEvents() {
   addScoreButton?.addEventListener("click", handleAddScore);
   goSummaryButton?.addEventListener("click", () => updateStep("summary"));
   backToScoreButton?.addEventListener("click", () => updateStep("score"));
+  finishSummaryButton?.addEventListener("click", openCeremonyMode);
   resetSessionButton?.addEventListener("click", resetSession);
+  closeCeremonyButton?.addEventListener("click", closeCeremonyMode);
+  closeCelebrationButton?.addEventListener("click", closeCelebration);
+  celebrationOverlay?.addEventListener("click", (event) => {
+    if (event.target === celebrationOverlay || event.target.classList.contains("celebration-backdrop")) {
+      closeCelebration();
+    }
+  });
+  document.addEventListener("keydown", handleGlobalKeydown);
 }
 
 function initializeSupabase() {
@@ -442,6 +468,8 @@ async function resetSession() {
   state.teams = [];
   state.scoreEvents = [];
   state.currentStep = "setup";
+  state.ceremonyOpen = false;
+  state.celebrationOpen = false;
   renderTeamForm();
   renderAll();
 }
@@ -452,6 +480,7 @@ function renderAll() {
   renderTeamSelect();
   renderScoreFeeds();
   renderSummary();
+  renderCeremony();
 }
 
 function renderConnectionInfo() {
@@ -551,6 +580,52 @@ function renderSummary() {
   });
 }
 
+function renderCeremony() {
+  if (!ceremonyScreen || !ceremonyRankingList || !winnerButtonGroup) {
+    return;
+  }
+
+  const rankedTeams = getRankedTeams().slice(0, 8);
+
+  ceremonyScreen.classList.toggle("is-visible", state.ceremonyOpen);
+  ceremonyScreen.setAttribute("aria-hidden", state.ceremonyOpen ? "false" : "true");
+  celebrationOverlay?.classList.toggle("is-visible", state.celebrationOpen);
+  celebrationOverlay?.setAttribute("aria-hidden", state.celebrationOpen ? "false" : "true");
+
+  ceremonyRankingList.innerHTML = "";
+  winnerButtonGroup.innerHTML = "";
+  ceremonyTopCount.textContent = `TOP ${Math.min(3, rankedTeams.length)}`;
+
+  if (rankedTeams.length === 0) {
+    ceremonyRankingList.innerHTML = '<div class="empty-state">아직 시상할 점수 결과가 없습니다.</div>';
+    winnerButtonGroup.innerHTML = '<div class="empty-state">먼저 점수를 입력한 뒤 완료를 눌러주세요.</div>';
+    return;
+  }
+
+  rankedTeams.forEach((team, index) => {
+    const item = document.createElement("article");
+    item.className = `ceremony-ranking-item place-${index + 1}`;
+    item.innerHTML = `
+      <div class="ceremony-rank-badge">${index + 1}등</div>
+      <div class="ceremony-rank-body">
+        <strong>${formatTeamLabel(team)}</strong>
+        <span>${team.motto}</span>
+      </div>
+      <div class="ceremony-rank-score">${team.totalScore}점</div>
+    `;
+    ceremonyRankingList.appendChild(item);
+  });
+
+  rankedTeams.slice(0, 3).forEach((team, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `winner-launch-button place-${index + 1}`;
+    button.textContent = `${index + 1}등 축하`;
+    button.addEventListener("click", () => openCelebration(index + 1, team));
+    winnerButtonGroup.appendChild(button);
+  });
+}
+
 function updateStep(step) {
   state.currentStep = step;
   renderStep();
@@ -611,4 +686,258 @@ function formatTeamLabel(team) {
 
   const displayName = team.name || `${team.id}팀`;
   return `${team.id}팀: ${displayName}`;
+}
+
+async function openCeremonyMode() {
+  state.ceremonyOpen = true;
+  state.celebrationOpen = false;
+  renderCeremony();
+  await requestFullscreenView();
+}
+
+function closeCeremonyMode() {
+  state.ceremonyOpen = false;
+  state.celebrationOpen = false;
+  stopCelebrationAudio();
+  clearFireworks();
+  celebrationOverlay.classList.remove("place-1", "place-2", "place-3");
+  renderCeremony();
+  exitFullscreenView();
+}
+
+function openCelebration(place, team) {
+  const configs = {
+    1: {
+      title: "1등!!! 압도적 우승!!!",
+      copy: "오늘의 레전드 팀입니다. 이건 진짜 난리나게 축하해야 합니다. 가장 큰 함성과 박수로 무대를 뒤집어주세요.",
+    },
+    2: {
+      title: "2등!!! 엄청난 저력!!!",
+      copy: "끝까지 몰아붙인 대단한 팀입니다. 아쉽지만 정말 뜨거운 박수를 받을 자격이 충분합니다.",
+    },
+    3: {
+      title: "3등!!! 멋진 마무리!!!",
+      copy: "유쾌한 에너지로 분위기를 살린 팀입니다. 신나는 박수와 환호로 함께 축하해주세요.",
+    },
+  };
+
+  if (!team) {
+    return;
+  }
+
+  state.celebrationOpen = true;
+  celebrationOverlay.classList.remove("place-1", "place-2", "place-3");
+  celebrationOverlay.classList.add(`place-${place}`);
+  celebrationTitle.textContent = configs[place]?.title || `${place}등 축하합니다`;
+  celebrationTeam.textContent = `${formatTeamLabel(team)} · ${team.totalScore}점`;
+  celebrationCopy.textContent = configs[place]?.copy || "정말 멋진 결과를 만든 팀입니다.";
+  launchCelebrationEffects(place);
+  renderCeremony();
+}
+
+function closeCelebration() {
+  state.celebrationOpen = false;
+  celebrationOverlay.classList.remove("place-1", "place-2", "place-3");
+  stopCelebrationAudio();
+  clearFireworks();
+  renderCeremony();
+}
+
+async function requestFullscreenView() {
+  const target = document.documentElement;
+
+  if (!document.fullscreenElement && target?.requestFullscreen) {
+    try {
+      await target.requestFullscreen();
+    } catch (error) {
+      return;
+    }
+  }
+}
+
+function exitFullscreenView() {
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+function handleGlobalKeydown(event) {
+  if (event.key === "Escape" && state.celebrationOpen) {
+    closeCelebration();
+    return;
+  }
+
+  if (event.key === "Escape" && state.ceremonyOpen) {
+    closeCeremonyMode();
+  }
+}
+
+function launchCelebrationEffects(place) {
+  stopCelebrationAudio();
+  clearFireworks();
+  startFireworksShow(place);
+  playCelebrationTheme(place);
+}
+
+function startFireworksShow(place) {
+  if (!fireworksLayer) {
+    return;
+  }
+
+  const burstMap = {
+    1: [
+      { left: "10%", top: "18%", delay: 0, size: "xl" },
+      { left: "50%", top: "12%", delay: 120, size: "xl" },
+      { left: "88%", top: "18%", delay: 220, size: "xl" },
+      { left: "20%", top: "38%", delay: 420, size: "lg" },
+      { left: "50%", top: "34%", delay: 520, size: "xl" },
+      { left: "80%", top: "38%", delay: 640, size: "lg" },
+      { left: "14%", top: "64%", delay: 860, size: "lg" },
+      { left: "50%", top: "58%", delay: 980, size: "xl" },
+      { left: "86%", top: "64%", delay: 1100, size: "lg" },
+    ],
+    2: [
+      { left: "18%", top: "24%", delay: 0, size: "md" },
+      { left: "78%", top: "24%", delay: 180, size: "md" },
+      { left: "50%", top: "20%", delay: 360, size: "lg" },
+      { left: "26%", top: "58%", delay: 620, size: "md" },
+      { left: "74%", top: "58%", delay: 820, size: "md" },
+    ],
+    3: [
+      { left: "28%", top: "28%", delay: 0, size: "sm" },
+      { left: "72%", top: "30%", delay: 220, size: "sm" },
+      { left: "50%", top: "52%", delay: 520, size: "sm" },
+    ],
+  };
+  const bursts = burstMap[place] || burstMap[3];
+
+  bursts.forEach((burst, index) => {
+    window.setTimeout(() => {
+      createFireworkBurst(burst.left, burst.top, index, burst.size);
+    }, burst.delay);
+  });
+}
+
+function createFireworkBurst(left, top, burstIndex, size = "md") {
+  if (!fireworksLayer) {
+    return;
+  }
+
+  const palette = [
+    ["#fff7b1", "#ffcc33"],
+    ["#ffd3f0", "#ff5fa2"],
+    ["#b7f5ff", "#38bdf8"],
+    ["#ffe0c1", "#fb923c"],
+  ];
+  const colors = palette[burstIndex % palette.length];
+  const fragment = document.createDocumentFragment();
+  const sparkCounts = { sm: 12, md: 18, lg: 24, xl: 34 };
+  const baseDistances = { sm: 78, md: 118, lg: 168, xl: 248 };
+  const sparkCount = sparkCounts[size] || sparkCounts.md;
+  const baseDistance = baseDistances[size] || baseDistances.md;
+
+  for (let index = 0; index < sparkCount; index += 1) {
+    const spark = document.createElement("span");
+    const angle = (Math.PI * 2 * index) / sparkCount;
+    const distance = baseDistance + (index % 4) * Math.max(16, Math.round(baseDistance * 0.14));
+
+    spark.className = "firework-spark";
+    spark.dataset.size = size;
+    spark.style.left = left;
+    spark.style.top = top;
+    spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+    spark.style.setProperty("--spark-color", colors[index % colors.length]);
+    spark.style.animationDelay = `${index * 18}ms`;
+    fragment.appendChild(spark);
+  }
+
+  fireworksLayer.appendChild(fragment);
+  window.setTimeout(() => {
+    clearFireworks();
+  }, 2600);
+}
+
+function clearFireworks() {
+  if (fireworksLayer) {
+    fireworksLayer.innerHTML = "";
+  }
+}
+
+function playCelebrationTheme(place) {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
+  if (!AudioContextClass) {
+    return;
+  }
+
+  if (!celebrationAudioContext) {
+    celebrationAudioContext = new AudioContextClass();
+  }
+
+  if (celebrationAudioContext.state === "suspended") {
+    celebrationAudioContext.resume().catch(() => {});
+  }
+
+  const melodies = {
+    1: [523.25, 659.25, 783.99, 1046.5, 783.99, 1174.66, 1318.51],
+    2: [493.88, 587.33, 659.25, 783.99, 659.25, 880],
+    3: [392, 493.88, 587.33, 659.25, 587.33],
+  };
+  const durations = {
+    1: 0.26,
+    2: 0.28,
+    3: 0.3,
+  };
+
+  const notes = melodies[place] || melodies[3];
+  const noteDuration = durations[place] || 0.3;
+  let index = 0;
+
+  celebrationSequenceTimer = window.setInterval(() => {
+    const now = celebrationAudioContext.currentTime;
+    playSynthNote(notes[index % notes.length], now, noteDuration, place === 1 ? 0.15 : 0.1);
+
+    if (place === 1 && index % 2 === 0) {
+      playSynthNote(notes[(index + 2) % notes.length] / 2, now, noteDuration * 1.1, 0.08);
+    }
+
+    index += 1;
+
+    if (index >= notes.length) {
+      stopCelebrationAudio(false);
+    }
+  }, noteDuration * 1000);
+}
+
+function playSynthNote(frequency, startTime, duration, gainValue) {
+  if (!celebrationAudioContext) {
+    return;
+  }
+
+  const oscillator = celebrationAudioContext.createOscillator();
+  const gainNode = celebrationAudioContext.createGain();
+
+  oscillator.type = "triangle";
+  oscillator.frequency.setValueAtTime(frequency, startTime);
+  gainNode.gain.setValueAtTime(0.0001, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(gainValue, startTime + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(celebrationAudioContext.destination);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration + 0.04);
+}
+
+function stopCelebrationAudio(closeContext = false) {
+  if (celebrationSequenceTimer) {
+    window.clearInterval(celebrationSequenceTimer);
+    celebrationSequenceTimer = null;
+  }
+
+  if (closeContext && celebrationAudioContext) {
+    celebrationAudioContext.close().catch(() => {});
+    celebrationAudioContext = null;
+  }
 }

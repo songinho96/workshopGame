@@ -146,13 +146,61 @@
           <section class="summary-card full-width">
             <div class="inline-header">
               <h3>변경 내역</h3>
-              <button class="secondary-button" id="back-to-score-button" type="button">점수 입력으로 돌아가기</button>
+              <div class="summary-action-group">
+                <button class="secondary-button" id="back-to-score-button" type="button">점수 입력으로 돌아가기</button>
+                <button class="primary-button" id="finish-summary-button" type="button">완료</button>
+              </div>
             </div>
             <div class="event-feed" id="summary-event-feed"></div>
           </section>
         </div>
       </section>
     </main>
+
+    <section class="ceremony-screen" id="ceremony-screen" aria-hidden="true">
+      <div class="ceremony-shell">
+        <div class="ceremony-header">
+          <div>
+            <p class="eyebrow">Final Ranking</p>
+            <h2>시상식 결과</h2>
+            <p class="ceremony-copy">1등부터 8등까지 순위를 한눈에 보고, 1등부터 3등까지는 축하 화면으로 크게 띄워보세요.</p>
+          </div>
+          <button class="secondary-button ceremony-close-button" id="close-ceremony-button" type="button">돌아가기</button>
+        </div>
+
+        <div class="ceremony-layout">
+          <section class="ceremony-card celebration-launcher">
+            <div class="inline-header">
+              <h3>시상 버튼</h3>
+              <span id="ceremony-top-count">TOP 3</span>
+            </div>
+            <div class="winner-button-group" id="winner-button-group"></div>
+          </section>
+
+          <section class="ceremony-card">
+            <div class="inline-header">
+              <h3>최종 순위</h3>
+              <span>TOP 8</span>
+            </div>
+            <div class="ceremony-ranking-list" id="ceremony-ranking-list"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="celebration-overlay" id="celebration-overlay" aria-hidden="true">
+      <div class="celebration-backdrop"></div>
+      <div class="fireworks-layer" id="fireworks-layer" aria-hidden="true"></div>
+      <div class="celebration-burst celebration-burst-left"></div>
+      <div class="celebration-burst celebration-burst-right"></div>
+      <div class="celebration-card">
+        <p class="eyebrow">Celebration</p>
+        <h2 id="celebration-title">1등 축하합니다</h2>
+        <p class="celebration-team" id="celebration-team">팀 정보가 없습니다.</p>
+        <p class="celebration-copy" id="celebration-copy">오늘의 무대를 화려하게 장식한 팀입니다.</p>
+        <button class="primary-button celebration-close-button" id="close-celebration-button" type="button">닫기</button>
+      </div>
+    </section>
 
     <template id="team-form-template">
       <article class="team-card">

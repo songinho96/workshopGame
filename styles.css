@@ -332,6 +332,13 @@ select:focus {
   padding-top: 4px;
 }
 
+.summary-action-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .inline-header {
   display: flex;
   justify-content: space-between;
@@ -470,10 +477,483 @@ button:disabled {
   text-align: center;
 }
 
+.ceremony-screen,
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+}
+
+.ceremony-screen.is-visible,
+.celebration-overlay.is-visible {
+  display: block;
+}
+
+.ceremony-screen {
+  padding: 28px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 224, 130, 0.32), transparent 22%),
+    radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.18), transparent 18%),
+    linear-gradient(135deg, #07162f 0%, #102e5b 42%, #1b4e94 100%);
+  color: #f8fbff;
+}
+
+.ceremony-shell {
+  width: min(1400px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  display: grid;
+  align-content: start;
+  gap: 24px;
+}
+
+.ceremony-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.ceremony-header h2 {
+  margin: 0;
+  font-size: clamp(2.8rem, 4vw, 4.8rem);
+  color: white;
+}
+
+.ceremony-copy {
+  max-width: 44rem;
+  margin: 14px 0 0;
+  color: rgba(240, 246, 255, 0.82);
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.ceremony-close-button {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.ceremony-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.7fr) minmax(0, 1.3fr);
+  gap: 24px;
+}
+
+.ceremony-card {
+  border-radius: 30px;
+  padding: 28px;
+  backdrop-filter: blur(18px);
+  background: rgba(11, 28, 58, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+}
+
+.ceremony-card .inline-header {
+  margin-bottom: 18px;
+}
+
+.ceremony-card h3,
+.ceremony-card span,
+.ceremony-rank-body span {
+  color: rgba(241, 246, 255, 0.82);
+}
+
+.winner-button-group,
+.ceremony-ranking-list {
+  display: grid;
+  gap: 14px;
+}
+
+.winner-launch-button {
+  border-radius: 24px;
+  min-height: 92px;
+  font-size: clamp(1.2rem, 1.8vw, 1.7rem);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.03em;
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.2);
+}
+
+.winner-launch-button.place-1 {
+  background: linear-gradient(135deg, #ffd86f, #ff9f1c);
+}
+
+.winner-launch-button.place-2 {
+  background: linear-gradient(135deg, #e8eef7, #93a9c7);
+}
+
+.winner-launch-button.place-3 {
+  background: linear-gradient(135deg, #f6bc87, #d6723d);
+}
+
+.ceremony-ranking-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ceremony-ranking-item.place-1,
+.ceremony-ranking-item.place-2,
+.ceremony-ranking-item.place-3 {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08));
+}
+
+.ceremony-rank-badge {
+  min-width: 90px;
+  min-height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: white;
+}
+
+.ceremony-rank-body {
+  display: grid;
+  gap: 8px;
+}
+
+.ceremony-rank-body strong {
+  color: white;
+  font-size: clamp(1.3rem, 2.2vw, 2rem);
+}
+
+.ceremony-rank-score {
+  font-size: clamp(1.6rem, 2.5vw, 2.6rem);
+  font-weight: 800;
+  color: #ffd86f;
+}
+
+.celebration-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.15), transparent 30%),
+    linear-gradient(135deg, rgba(21, 14, 58, 0.94), rgba(18, 57, 118, 0.94));
+}
+
+.celebration-overlay.place-1 .celebration-backdrop {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 245, 168, 0.3), transparent 22%),
+    radial-gradient(circle at 16% 18%, rgba(255, 174, 66, 0.34), transparent 22%),
+    radial-gradient(circle at 84% 24%, rgba(255, 226, 122, 0.26), transparent 20%),
+    linear-gradient(135deg, rgba(63, 22, 4, 0.98), rgba(167, 78, 1, 0.95) 42%, rgba(255, 164, 28, 0.96));
+}
+
+.celebration-overlay.place-2 .celebration-backdrop {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.22), transparent 24%),
+    radial-gradient(circle at 12% 80%, rgba(174, 209, 255, 0.26), transparent 18%),
+    linear-gradient(135deg, rgba(42, 52, 79, 0.98), rgba(111, 132, 160, 0.94), rgba(214, 225, 238, 0.92));
+}
+
+.celebration-overlay.place-3 .celebration-backdrop {
+  background:
+    radial-gradient(circle at 20% 22%, rgba(255, 212, 185, 0.24), transparent 22%),
+    radial-gradient(circle at 78% 26%, rgba(255, 165, 116, 0.22), transparent 20%),
+    linear-gradient(135deg, rgba(72, 28, 14, 0.97), rgba(159, 80, 44, 0.94), rgba(218, 141, 92, 0.92));
+}
+
+.fireworks-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.firework-spark {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.98) 0%, var(--spark-color, #ffd54f) 42%, rgba(255, 255, 255, 0) 76%);
+  box-shadow:
+    0 0 22px var(--spark-color, #ffd54f),
+    0 0 46px rgba(255, 255, 255, 0.4);
+  animation: firework-burst 1.2s ease-out forwards;
+}
+
+.firework-spark[data-size="sm"] {
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  box-shadow:
+    0 0 14px var(--spark-color, #ffd54f),
+    0 0 28px rgba(255, 255, 255, 0.34);
+}
+
+.firework-spark[data-size="md"] {
+  width: 18px;
+  height: 18px;
+}
+
+.firework-spark[data-size="lg"] {
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  box-shadow:
+    0 0 28px var(--spark-color, #ffd54f),
+    0 0 60px rgba(255, 255, 255, 0.46);
+}
+
+.firework-spark[data-size="xl"] {
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  margin-top: -15px;
+  box-shadow:
+    0 0 36px var(--spark-color, #ffd54f),
+    0 0 84px rgba(255, 255, 255, 0.58);
+}
+
+.celebration-burst {
+  position: absolute;
+  width: 44vw;
+  height: 44vw;
+  max-width: 720px;
+  max-height: 720px;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.72;
+  animation: pulse-burst 2.8s ease-in-out infinite;
+}
+
+.celebration-burst-left {
+  top: -8vw;
+  left: -6vw;
+  background:
+    radial-gradient(circle, rgba(255, 219, 91, 0.95) 0%, rgba(255, 173, 64, 0.72) 24%, transparent 58%);
+}
+
+.celebration-burst-right {
+  right: -7vw;
+  bottom: -10vw;
+  background:
+    radial-gradient(circle, rgba(118, 234, 255, 0.92) 0%, rgba(75, 124, 255, 0.6) 26%, transparent 60%);
+  animation-delay: 0.8s;
+}
+
+.celebration-overlay.place-1 .celebration-burst {
+  width: 52vw;
+  height: 52vw;
+  max-width: 900px;
+  max-height: 900px;
+  opacity: 0.92;
+  filter: blur(12px);
+  animation: pulse-burst 1.8s ease-in-out infinite;
+}
+
+.celebration-overlay.place-1 .celebration-burst-left {
+  background:
+    radial-gradient(circle, rgba(255, 251, 199, 0.98) 0%, rgba(255, 204, 76, 0.92) 22%, rgba(255, 152, 0, 0.54) 42%, transparent 64%);
+}
+
+.celebration-overlay.place-1 .celebration-burst-right {
+  background:
+    radial-gradient(circle, rgba(255, 240, 145, 0.98) 0%, rgba(255, 173, 48, 0.88) 24%, rgba(255, 123, 0, 0.56) 42%, transparent 64%);
+}
+
+.celebration-overlay.place-2 .celebration-burst-left,
+.celebration-overlay.place-2 .celebration-burst-right {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.96) 0%, rgba(186, 209, 235, 0.82) 24%, rgba(132, 156, 189, 0.42) 48%, transparent 66%);
+}
+
+.celebration-overlay.place-3 .celebration-burst-left,
+.celebration-overlay.place-3 .celebration-burst-right {
+  background:
+    radial-gradient(circle, rgba(255, 223, 188, 0.94) 0%, rgba(224, 144, 94, 0.74) 24%, rgba(156, 84, 53, 0.38) 48%, transparent 66%);
+}
+
+.celebration-card {
+  position: relative;
+  width: min(1280px, calc(100vw - 20px));
+  margin: 6vh auto 0;
+  padding: 64px 60px;
+  border-radius: 36px;
+  text-align: center;
+  backdrop-filter: blur(18px);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 36px 100px rgba(0, 0, 0, 0.32);
+}
+
+.celebration-overlay.place-1 .celebration-card {
+  width: min(1520px, calc(100vw - 12px));
+  margin-top: 3vh;
+  padding: 84px 76px;
+  border-radius: 42px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(255, 238, 176, 0.16)),
+    linear-gradient(135deg, rgba(255, 196, 67, 0.22), rgba(255, 136, 0, 0.16));
+  border: 1px solid rgba(255, 244, 191, 0.42);
+  box-shadow: 0 50px 140px rgba(53, 16, 0, 0.4);
+}
+
+.celebration-overlay.place-2 .celebration-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.26), rgba(216, 227, 243, 0.14));
+}
+
+.celebration-overlay.place-3 .celebration-card {
+  background:
+    linear-gradient(145deg, rgba(255, 244, 238, 0.22), rgba(236, 182, 144, 0.14));
+}
+
+.celebration-card::before,
+.celebration-card::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  filter: blur(8px);
+  opacity: 0.9;
+}
+
+.celebration-card::before {
+  top: -50px;
+  left: -28px;
+  background: radial-gradient(circle, rgba(255, 230, 112, 0.9), transparent 70%);
+}
+
+.celebration-card::after {
+  right: -30px;
+  bottom: -38px;
+  background: radial-gradient(circle, rgba(102, 218, 255, 0.8), transparent 70%);
+}
+
+.celebration-overlay.place-1 .celebration-card::before,
+.celebration-overlay.place-1 .celebration-card::after {
+  width: 260px;
+  height: 260px;
+  filter: blur(4px);
+}
+
+.celebration-card .eyebrow,
+.celebration-title,
+.celebration-team,
+.celebration-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.celebration-card h2 {
+  margin: 0;
+  font-size: clamp(4.1rem, 7.6vw, 8rem);
+  line-height: 0.98;
+  white-space: nowrap;
+  color: white;
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.celebration-overlay.place-1 .celebration-card h2 {
+  font-size: clamp(5.8rem, 11vw, 11rem);
+  line-height: 0.9;
+  color: #fff7c8;
+  text-shadow:
+    0 0 18px rgba(255, 243, 165, 0.42),
+    0 14px 60px rgba(88, 29, 0, 0.4);
+}
+
+.celebration-overlay.place-2 .celebration-card h2 {
+  color: #ffffff;
+}
+
+.celebration-overlay.place-3 .celebration-card h2 {
+  color: #fff2e8;
+}
+
+.celebration-team {
+  margin: 22px 0 0;
+  font-size: clamp(2rem, 3.4vw, 3.3rem);
+  font-weight: 800;
+  color: #fff3bf;
+}
+
+.celebration-overlay.place-1 .celebration-team {
+  font-size: clamp(2.7rem, 4.6vw, 4.6rem);
+  color: #fff9d6;
+}
+
+.celebration-copy {
+  max-width: 30ch;
+  margin: 22px auto 0;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  line-height: 1.75;
+  color: rgba(243, 247, 255, 0.92);
+}
+
+.celebration-overlay.place-1 .celebration-copy {
+  max-width: 34ch;
+  font-size: clamp(1.65rem, 2.8vw, 2.4rem);
+  color: rgba(255, 252, 234, 0.98);
+}
+
+.celebration-close-button {
+  position: relative;
+  z-index: 1;
+  margin-top: 34px;
+  min-width: 220px;
+  min-height: 60px;
+  font-size: 1.05rem;
+}
+
+.celebration-overlay.place-1 .celebration-close-button {
+  min-width: 260px;
+  min-height: 68px;
+  font-size: 1.14rem;
+}
+
+@keyframes pulse-burst {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.62;
+  }
+
+  50% {
+    transform: scale(1.06);
+    opacity: 0.9;
+  }
+}
+
+@keyframes firework-burst {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.35);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate3d(var(--dx), var(--dy), 0) scale(1.2);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 900px) {
   .setup-layout,
   .score-layout,
   .summary-layout,
+  .ceremony-layout,
   .field-grid {
     grid-template-columns: 1fr;
   }
@@ -498,8 +978,34 @@ button:disabled {
 
   .panel-actions,
   .score-action-row,
-  .inline-header {
+  .inline-header,
+  .summary-action-group,
+  .ceremony-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .ceremony-screen {
+    padding: 18px;
+  }
+
+  .ceremony-ranking-item {
+    grid-template-columns: 1fr;
+  }
+
+  .celebration-card {
+    width: min(100vw - 18px, 100%);
+    margin-top: 10vh;
+    padding: 42px 24px;
+  }
+
+  .celebration-overlay.place-1 .celebration-card {
+    width: min(100vw - 14px, 100%);
+    margin-top: 7vh;
+    padding: 52px 26px;
+  }
+
+  .celebration-card h2 {
+    white-space: normal;
   }
 }
