@@ -2,6 +2,7 @@ create extension if not exists pgcrypto;
 
 create table if not exists public.workshops (
   id uuid primary key default gen_random_uuid(),
+  session_code text,
   session_name text not null default 'Okestro Workshop',
   team_count integer not null default 0,
   status text not null default 'draft',
@@ -35,6 +36,13 @@ create table if not exists public.workshop_score_events (
 alter table public.workshops enable row level security;
 alter table public.workshop_teams enable row level security;
 alter table public.workshop_score_events enable row level security;
+
+update public.workshops
+set session_code = upper(substr(replace(id::text, '-', ''), 1, 8))
+where session_code is null or session_code = '';
+
+create unique index if not exists workshops_session_code_idx
+on public.workshops(session_code);
 
 drop policy if exists "anon can read workshops" on public.workshops;
 create policy "anon can read workshops"

@@ -1,1 +1,4 @@
 .vercel
+.vercel-legacy-link
+node_modules
+dist
